@@ -1,13 +1,15 @@
 import numpy as np
+import cv2
 from tensorflow.keras.utils import Sequence, to_categorical
 
 
 class DataGenerator(Sequence):
-    def __init__(self, data_path, labels, batch_size=32, n_channels=1,
+    def __init__(self, data_path, labels, batch_size=32, dim=(250,250), n_channels=3,
                  n_classes=5, shuffle=True):
-        self.batch_size = batch_size
-        self.labels = labels
         self.data_paths = data_path
+        self.labels = labels
+        self.batch_size = batch_size
+        self.dim = dim
         self.n_channels = n_channels
         self.n_classes = n_classes
         self.shuffle = shuffle
@@ -32,15 +34,11 @@ class DataGenerator(Sequence):
             np.random.shuffle(self.indexes)
 
     def __data_generation(self, temp_data_paths):
-        x = []
-        y = []
+        x = np.empty((self.batch_size, *self.dim, self.n_channels))
+        y = np.empty(self.batch_size, dtype=int)
 
         for i, path in enumerate(temp_data_paths):
-            array_to_append = np.load(path, allow_pickle=True)
-            array_to_append = self.scaler.transform(array_to_append)
-            x.append(array_to_append)
+            x[i,] = cv2.imread(path)
+            y[i] = self.labels[path]
 
-            # Store class
-            y.append(self.labels[path])
-
-        return x, to_categorical(np.array(y), num_classes=self.n_classes)
+        return x, to_categorical(y, num_classes=self.n_classes)
