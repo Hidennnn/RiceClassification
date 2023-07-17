@@ -34,11 +34,12 @@ class DataGenerator(Sequence):
             np.random.shuffle(self.indexes)
 
     def __data_generation(self, temp_data_paths):
-        x = np.empty((self.batch_size, *self.dim, self.n_channels))
+        x = np.empty((self.batch_size, *self.dim, self.n_channels), dtype=float)
         y = np.empty(self.batch_size, dtype=int)
 
         for i, path in enumerate(temp_data_paths):
-            x[i,] = cv2.imread(path)
+            image = cv2.imread(path)
+            x[i,] = image / 255
             y[i] = self.labels[path]
 
         return x, to_categorical(y, num_classes=self.n_classes)
